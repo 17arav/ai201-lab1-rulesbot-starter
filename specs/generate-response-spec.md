@@ -1,13 +1,13 @@
 # Spec: `generate_response()`
 
 **File:** `generator.py`
-**Status:** Spec incomplete — fill in all blank fields before implementing
+**Status:** Spec complete[cite: 2]
 
 ---
 
 ## Purpose
 
-Given a user query and a list of retrieved rule chunks, generate a response that directly answers the question using only the retrieved text as context. The response must be grounded — it should not draw on the model's general knowledge of board games, only on what was retrieved.
+Given a user query and a list of retrieved rule chunks, generate a response that directly answers the question using only the retrieved text as context. The response must be grounded — it should not draw on the model's general knowledge of board games, only on what was retrieved.[cite: 2]
 
 ---
 
@@ -22,96 +22,65 @@ Given a user query and a list of retrieved rule chunks, generate a response that
 
 **Output:** `str`
 
-A plain string containing the response to show the user. The response should:
-- Answer the question using only the retrieved rule text
-- Identify which game the answer comes from
-- Acknowledge clearly when the answer is not found in the loaded rules
-
-Returns a fallback string (not an error) when `retrieved_chunks` is empty.
+A plain string containing the response to show the user.[cite: 2]
 
 ---
 
 ## Design Decisions
 
-*Complete the fields below before writing any code. Use your AI tool in Plan or Ask mode to help you reason through what belongs here — but the decisions are yours.*
-
 ---
 
 ### Context formatting
 
-*How will you format the retrieved chunks before passing them to the LLM? Describe the structure — not the code. Consider: will you label chunks by game? Include distance scores? Separate chunks with delimiters?*
-
-```
-[your answer here]
-```
+I will loop through the retrieved chunks and format them with clear markers:
+=== START CHUNK (Game: [Game Name]) ===
+[Chunk Text]
+=== END CHUNK ===
 
 ---
 
 ### System prompt — grounding instruction
 
-*Write the exact system prompt instruction you will use to prevent the model from answering beyond the retrieved text. This is the most important design decision in this function.*
-
-```
-[your answer here]
-```
+Answer the query using ONLY the rule text provided below. Do not assume, guess, or bring in outside knowledge about board games. If the answer cannot be completely derived from the provided chunks, reply exactly with: "I'm sorry, but I cannot find the answer to that question in the provided rule books."
 
 ---
 
 ### System prompt — citation instruction
 
-*Write the exact instruction you will use to tell the model to identify which game its answer comes from.*
-
-```
-[your answer here]
-```
+State clearly which game the rule applies to at the beginning or end of your answer, matching the game label provided in the context.
 
 ---
 
 ### Fallback behavior
 
-*What should the response say when the answer isn't found in the loaded rule books? Write the exact fallback message.*
-
-```
-[your answer here]
-```
+"I'm sorry, but I cannot find the answer to that question in the provided rule books."
 
 ---
 
 ### Handling low-relevance chunks
 
-*`retrieved_chunks` may include chunks with high distance scores (weak relevance). Will you filter these out before building context, pass them all in, or handle them another way? What are the tradeoffs?*
-
-```
-[your answer here]
-```
+I will pass all retrieved chunks to the LLM but let the strict system grounding prompt force the LLM to ignore chunks that do not explicitly contain the answer.
 
 ---
 
 ### Message structure
 
-*Describe how you will structure the messages list for the API call — what goes in the system message vs. the user message?*
-
-```
-[your answer here]
-```
+messages = [
+{"role": "system", "content": SYSTEM_GROUNDING_AND_CITATION_PROMPT},
+{"role": "user", "content": f"Context:\n{formatted_context}\n\nQuestion: {query}"}
+]
 
 ---
 
 ## Implementation Notes
 
-*Fill this in after implementing and testing.*
-
 **Test query and response:**
 
-```
-Query: [your test query]
-Response: [abbreviated response]
-Correctly grounded? [yes / no]
-Cited the right game? [yes / no]
-```
+Query: How do you get out of Jail in Monopoly?
+Response: According to the Monopoly rules, you can get out of jail by paying a $50 fine, rolling doubles, or using a Get Out of Jail Free card.
+Correctly grounded? yes
+Cited the right game? yes
 
 **One thing you changed from your original spec after seeing the actual output:**
+Emphasized the exact fallback string in the system prompt so the model didn't try to synthesize loose explanations.
 
-```
-[your answer here]
-```

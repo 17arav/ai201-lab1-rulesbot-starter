@@ -46,27 +46,38 @@ def embed_and_store(chunks):
     print(f"Stored {_collection.count()} total chunks in the vector database.")
 
 
-def retrieve(query, n_results=N_RESULTS):
+def retrieve(query: str, n_results: int = None) -> list[dict]:
     """
-    Find the most relevant rule chunks for a user's question.
-
-    TODO — Milestone 2:
-
-    Use _collection.query() to run a semantic search. It takes:
-      - query_texts : a list containing your query string
-      - n_results   : how many results to return
-      - include     : what to return — use ["documents", "metadatas", "distances"]
-
-    Return a list of dicts, each with:
-      - "text"     : the chunk text
-      - "game"     : the game name (pull this from metadatas)
-      - "distance" : the similarity score (lower = more similar for cosine)
-
-    Note: _collection.query() returns nested lists (one per query). You only
-    have one query, so you'll want index [0] to get the actual results.
+    Given a user's natural language query, find the most relevant chunks 
+    from the vector store using semantic similarity search.
     """
+    if n_results is None:
+        n_results = N_RESULTS
+        
+    # Check if the collection contains any items
     if _collection.count() == 0:
         return []
-
-    # Your implementation here.
-    return []
+        
+    # Query ChromaDB
+    results = _collection.query(
+        query_texts=[query],
+        n_results=n_results
+    )
+    
+    # Handle the nested structure trap safely
+    if not results or not results["documents"] or len(results["documents"][0]) == 0:
+        return []
+        
+    documents = results["documents"][0]
+    metadatas = results["metadatas"][0]
+    distances = results["distances"][0]
+    
+    formatted_chunks = []
+    for i in range(len(documents)):
+        formatted_chunks.append({
+            "text": documents[i],
+            "game": metadatas[i].get("game", "Unknown"),
+            "distance": distances[i]
+        })
+        
+    return formatted_chunks

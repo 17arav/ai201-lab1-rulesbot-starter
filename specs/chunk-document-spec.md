@@ -111,7 +111,8 @@ handle these cases better, at the cost of more implementation complexity.
 
 ## Implementation Notes
 
-*Fill this in after running the app and confirming ingestion worked.*
+*Stored 149 total chunks in the vector database.
+Ingestion complete. 149 chunks stored.*
 
 **Actual chunk count produced across all 8 rule books:**
 
