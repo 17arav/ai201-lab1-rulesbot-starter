@@ -117,11 +117,11 @@ Ingestion complete. 149 chunks stored.*
 **Actual chunk count produced across all 8 rule books:**
 
 ```
-[your answer here]
+149
 ```
 
 **One thing that surprised you or didn't match your expectations:**
 
 ```
-[your answer here]
+I was surprised by how much the chunk count exploded when we accidentally set the step size to 0!
 ```
